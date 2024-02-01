@@ -36,6 +36,7 @@ def get_connected_components_3D(seg_data, connectivity = 18):
         component_mask = labled_mask == component_id
         #print each id of each component
         print(f"Connected Component {component_id}:")
+        # if np.sum(component_mask) >= 10:
         separate_seg_masks.append(component_mask)
     return separate_seg_masks
 
@@ -74,14 +75,12 @@ def find_tumor_idx_on_suv_data(separate_seg_masks, SUV_data):
     tumor_idx_on_suv_data = []
     for mask in separate_seg_masks:
         maksed_SUV_data = SUV_data*mask
-        print(np.argmax(np.sum(SUV_data, axis = (0,1))))
+        # print(np.argmax(np.sum(SUV_data, axis = (0,1))))
         # print(f"maksed_SUV_data shape: {maksed_SUV_data.shape}")
         idx = np.argmax(np.sum(maksed_SUV_data, axis = (0,1)))
         print(f'tumor_idx: {idx}')
         tumor_idx_on_suv_data.append(idx)
     return tumor_idx_on_suv_data
-
-
 
 def main(seg_data, SUV_data, voxel_dimensions, connectivity = 18):
     separate_seg_masks = get_connected_components_3D(seg_data, connectivity)
@@ -105,13 +104,13 @@ def main(seg_data, SUV_data, voxel_dimensions, connectivity = 18):
 
 if __name__ == "__main__":
     # pet_file_path = '/Users/wenyuanchen/Desktop/IBM/IBM_Tumor_Project/Data/PETCT_0b57b247b6/05-02-2002-NA-PET-CT Ganzkoerper  primaer mit KM-42966/PET.nii.gz'
-    # seg_file_path = '/Users/wenyuanchen/Desktop/IBM/IBM_Tumor_Project/Data/PETCT_0b57b247b6/05-02-2002-NA-PET-CT Ganzkoerper  primaer mit KM-42966/SEG.nii.gz'
-    seg_file_path = '/Volumes/T7 Shield/IBM/FDG-PET-CT-Lesions/PETCT_1285b86bea/02-24-2006-NA-PET-CT Ganzkoerper  primaer mit KM-49419/SEG.nii.gz'
+    seg_file_path = '/Users/wenyuanchen/Desktop/IBM/IBM_Tumor_Project/Data/PETCT_1285b86bea/02-24-2006-NA-PET-CT Ganzkoerper  primaer mit KM-49419/SEG.nii.gz'
+    # seg_file_path = '/Volumes/T7 Shield/IBM/FDG-PET-CT-Lesions/PETCT_1285b86bea/02-24-2006-NA-PET-CT Ganzkoerper  primaer mit KM-49419/SEG.nii.gz'
     seg_img = nib.load(seg_file_path)
     # Convert the image data to a numpy array
     seg_data = seg_img.get_fdata()
-    # suv_file_path = '/Users/wenyuanchen/Desktop/IBM/IBM_Tumor_Project/Data/PETCT_0b57b247b6/05-02-2002-NA-PET-CT Ganzkoerper  primaer mit KM-42966/SUV.nii.gz'
-    suv_file_path = '/Volumes/T7 Shield/IBM/FDG-PET-CT-Lesions/PETCT_1285b86bea/02-24-2006-NA-PET-CT Ganzkoerper  primaer mit KM-49419/SUV.nii.gz'
+    suv_file_path = '/Users/wenyuanchen/Desktop/IBM/IBM_Tumor_Project/Data/PETCT_1285b86bea/02-24-2006-NA-PET-CT Ganzkoerper  primaer mit KM-49419/SUV.nii.gz'
+    # suv_file_path = '/Volumes/T7 Shield/IBM/FDG-PET-CT-Lesions/PETCT_1285b86bea/02-24-2006-NA-PET-CT Ganzkoerper  primaer mit KM-49419/SUV.nii.gz'
     print(f"working with {suv_file_path}")
     suv_img = nib.load(suv_file_path)
     # Convert the image data to a numpy array

@@ -44,7 +44,7 @@ def get_next_unprocessed(patients, last_processed):
 
 # Set up logging
 logging.basicConfig(
-    filename='patient_processing.log', 
+    filename='patient_processing_with_26_conn.log', 
     filemode='a', 
     format='%(asctime)s - %(levelname)s - %(message)s',
     level=logging.INFO
@@ -63,10 +63,10 @@ def process_patient_folder(subfolder_path):
     suv_img = nib.load(suv_file_path)
     suv_data = suv_img.get_fdata()
 
-    separate_seg_masks = get_connected_components_3D(seg_data)
+    separate_seg_masks = get_connected_components_3D(seg_data, connectivity=26)
     tumor_voxel_counts, tumor_volumes, tumor_in_diameter = calculate_tumor_volumes(separate_seg_masks, voxel_dimensions)
     SUV_mean_values, SUV_max_values, SUV_min_values= calculate_SUV_value(separate_seg_masks, suv_data)
-    plot_the_tumor_idx_on_suv_data(subfolder_path, separate_seg_masks, suv_data)
+    # plot_the_tumor_idx_on_suv_data(subfolder_path, separate_seg_masks, suv_data)
 
     return {
         'separate_seg_masks': separate_seg_masks,
@@ -130,72 +130,7 @@ def write_to_csv(data_directory, output_csv):
                 save_checkpoint({'patient_id': patient_id, 'study_id': study_id})
                 logger.info(f'Finished writing study {study_id} for patient {patient_id} to csv')
                 
-                
-
-
-                
-    
-    # processed_combinations = set(load_checkpoint())
-    # patients = [patient_id for patient_id in os.listdir(data_directory) if not patient_id.startswith('.') and os.path.isdir(os.path.join(data_directory, patient_id))]
-    # with open(output_csv, 'a', newline='') as csvfile:  # Use append mode
-    #     csvwriter = csv.writer(csvfile)
-    #     header_written = os.path.exists(output_csv)  # Check if header is already written
-    
-
-    #     # for patient_id in tqdm(os.listdir(data_directory), desc = "Processing patients"):
-    #     #     print(f"Processing patient {patient_id}")
-    #     #     patient_folder = os.path.join(data_directory, patient_id)
-    #     #     if os.path.isdir(patient_folder)and not patient_id.startswith('.'):
-    #     #         for study_id in os.listdir(patient_folder):
-    #     #             unique_id = f"{patient_id}_{study_id}"
-    #     #             if unique_id in processed_combinations:
-    #     #                 logger.info(f"Skipping already processed combination {unique_id}")
-    #     #                 continue
-    #     for patient_id in tqdm(patients, desc="Processing patients"):
-    #         patient_folder = os.path.join(data_directory, patient_id)
-    #         subfolders = [f.name for f in os.scandir(patient_folder) if f.is_dir() and not f.name.startswith('.')]
-    #         for study_id in subfolders:
-    #             unique_id = f"{patient_id}_{study_id}"
-    #             if unique_id in processed_combinations:
-    #                 logger.info(f"Skipping already processed combination {unique_id}")
-    #                 continue
-    #                 # Filter out any non-directory entries, like .DS_Store
-    #                 subfolders = [f.name for f in os.scandir(patient_folder) if f.is_dir()]
-    #                 if not subfolders:
-    #                     raise ValueError(f"No subdirectories found in {patient_folder}")
-    #                 study_id = subfolders[0]  # Get the first subdirectory
-    #                 logger.info(f"-------------------------Processing patient {patient_id}-----------------------------")
-    #                 subfolder_path = os.path.join(patient_folder, study_id)
-                    # with open(os.devnull, 'w') as f, contextlib.redirect_stdout(f):
-                    #     stats = process_patient_folder(subfolder_path=subfolder_path)
-                    #     logger.info(f'finishing processing patient {patient_id}')
-                    # # Write header if not already done
-                    # if not header_written:
-                    #     header = ['Patient ID', 'Study ID', 'Tumor idx', 'Pixel Vol', 'Physical Vol(cm^3)', 'In Diameter(cm)', 'SUV Mean', 'SUV Min', 'SUV Max']
-                    #     csvwriter.writerow(header)
-                    #     header_written = True
-
-                    # # If no tumors, write a row with zeros for the tumor-specific columns
-                    # logger.info(f'start writing this study to csv')
-                    # if not stats['tumor_voxel_counts']:
-                    #     row_data = [patient_id, study_id, 0] + [0]*6
-                    #     csvwriter.writerow(row_data)
-                    # else:
-                    #     # Write a row for each tumor
-                    #     for idx in range(len(stats['tumor_voxel_counts'])):
-                    #         row_data = [patient_id, study_id, idx+1]
-                    #         row_data.extend([
-                    #             stats['tumor_voxel_counts'][idx],
-                    #             stats['tumor_volumes'][idx],
-                    #             stats['tumor_in_diameter'][idx],
-                    #             stats['SUV_mean_values'][idx],
-                    #             stats['SUV_min_values'][idx],
-                    #             stats['SUV_max_values'][idx]
-                    #         ])
-                    #         csvwriter.writerow(row_data)
-                    # processed_combinations.add(unique_id)
-                    # save_checkpoint(list(processed_combinations))
-                    # logger.info(f'finished writing this study to csv')
+            
 
 def main(data_directory, output_csv):
 
@@ -209,9 +144,11 @@ def main(data_directory, output_csv):
 
 if __name__ == "__main__":
     # data_directory = "/Users/wenyuanchen/Desktop/IBM/IBM_Tumor_Project/Data"
+    print('start!')
     data_directory = "/Volumes/T7 Shield/IBM/FDG-PET-CT-Lesions"
-    output_csv = 'all_patients_results.csv'
+    output_csv = 'all_patients_results_with_26.csv'
     main(data_directory, output_csv)
+    print('done!')
 
 
 
