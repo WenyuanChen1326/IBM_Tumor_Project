@@ -9,6 +9,7 @@ import nibabel as nib
 import math
 import cv2
 from scipy import ndimage
+from utils import get_connected_components_3D
 
 
 # Windows a CT volume or slice
@@ -151,7 +152,7 @@ def show_axial_image_slice(img, dim=(400,400), display=True, show_gaze=False):
 # study_path assumes a nested directory from Tubingen dataset with processed nifties as named below
 def read_and_show_study(study_path, idx, modality, dim=(400,400), out_path=None):
     # .nii.gz files expected in the study_path
-    seg_path = os.path.join(study_path,'tumor_7_seg.nii.gz')
+    seg_path = os.path.join(study_path,'tumor_3_seg.nii.gz')
     # seg_path = os.path.join(study_path,'SEG.nii.gz')
 
     pt_path = os.path.join(study_path,'SUV.nii.gz')
@@ -192,7 +193,7 @@ def read_and_show_study(study_path, idx, modality, dim=(400,400), out_path=None)
     
     # Show final processed image axial slice
     print('Showing an axial slice of modality: ', modality, ' and slice index: ', idx)
-    show_axial_image_slice(img, dim=(400,400))
+    # show_axial_image_slice(img, dim=(400,400))
     
     # Save image. Out_path should have a .png or .jpg extension
     if out_path!=None:
@@ -201,38 +202,39 @@ def read_and_show_study(study_path, idx, modality, dim=(400,400), out_path=None)
         cv2.imwrite(out_path, img)    
         
     
-# Separates out individual tumors
-def get_connected_components_3D(seg_data): 
-    # input seg_data is the numpy after reading nifti and get_fdata()
+# # Separates out individual tumors
+# def get_connected_components_3D(seg_data): 
+#     # input seg_data is the numpy after reading nifti and get_fdata()
     
-    #value of 1 means lesion is present
-    value = 1
-    binary_mask = seg_data == value
+#     #value of 1 means lesion is present
+#     value = 1
+#     binary_mask = seg_data == value
 
-    #label and seperate each component off that has the value of 1
-    labled_mask, num_features = ndimage.label(binary_mask)
+#     #label and seperate each component off that has the value of 1
+#     labled_mask, num_features = ndimage.label(binary_mask)
 
-    #assign a unique id to each component
-    unique_ids = np.unique(labled_mask)
+#     #assign a unique id to each component
+#     unique_ids = np.unique(labled_mask)
 
-    #num of components
-    print(num_features)
+#     #num of components
+#     print(num_features)
 
-    #seperate out the masks
-    separate_seg_masks = []
-    for component_id in unique_ids:
-        component_mask = labled_mask == component_id
-        #print each id of each component
-        print(f"Connected Component {component_id}:")
-        separate_seg_masks.append(component_mask)
+#     #seperate out the masks
+#     separate_seg_masks = []
+#     for component_id in unique_ids:
+#         component_mask = labled_mask == component_id
+#         #print each id of each component
+#         print(f"Connected Component {component_id}:")
+#         separate_seg_masks.append(component_mask)
     
-    return separate_seg_masks
+#     return separate_seg_masks
 
 
 if __name__ == "__main__":
-    study_path = "/Users/wenyuanchen/Desktop/IBM/IBM_Tumor_Project/Data/PETCT_5d553bf6b4/09-16-2001-NA-PET-CT Ganzkoerper  primaer mit KM-78907"
+    # study_path = '/Users/wenyuanchen/Desktop/IBM/IBM_Tumor_Project/Data/PETCT_0b57b247b6/05-02-2002-NA-PET-CT Ganzkoerper  primaer mit KM-42966'
+    study_path = '/Volumes/T7 Shield/IBM/FDG-PET-CT-Lesions-2/PETCT_0e2034240b/01-31-2003-NA-PET-CT Ganzkoerper  primaer mit KM-08517'
 # Default index
-    idx = 200
+    idx = 170
     # Check if an index argument was provided
     if len(sys.argv) > 1:
         try:
@@ -242,7 +244,7 @@ if __name__ == "__main__":
             print("Invalid index provided. Using default index 0.")
     
     read_and_show_study(study_path, idx=idx, modality='pet_seg', out_path=f"{study_path}/pet_seg_slice{idx}.png")
-    
+
     # seg_data = nib.load(f"{study_path}/SEG.nii.gz").get_fdata()
     # separate_seg_masks = get_connected_components_3D(seg_data)
     # for idx, mask in enumerate(separate_seg_masks):
@@ -250,3 +252,4 @@ if __name__ == "__main__":
     #     affine = np.eye(4)
     #     nifti_img = nib.Nifti1Image(mask, affine)
     #     nib.save(nifti_img, f"{study_path}/tumor_{idx}_seg.nii.gz")
+    
