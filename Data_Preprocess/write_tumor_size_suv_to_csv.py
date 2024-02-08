@@ -9,7 +9,7 @@ import contextlib
 import logging
 import json
 
-CHECKPOINT_FILE = 'checkpoint.json'
+# CHECKPOINT_FILE = 'checkpoint_new_con_26.json'
 
 # def save_checkpoint(processed_patients):
 #     with open(CHECKPOINT_FILE, 'w') as f:
@@ -21,30 +21,30 @@ CHECKPOINT_FILE = 'checkpoint.json'
 #             return json.load(f)
 #     return []
 
-def save_checkpoint(last_processed):
-    with open(CHECKPOINT_FILE, 'w') as f:
-        json.dump(last_processed, f)
+# def save_checkpoint(last_processed):
+#     with open(CHECKPOINT_FILE, 'w') as f:
+#         json.dump(last_processed, f)
 
-def load_checkpoint():
-    if os.path.exists(CHECKPOINT_FILE):
-        with open(CHECKPOINT_FILE, 'r') as f:
-            return json.load(f)
-    return {}
+# def load_checkpoint():
+#     if os.path.exists(CHECKPOINT_FILE):
+#         with open(CHECKPOINT_FILE, 'r') as f:
+#             return json.load(f)
+#     return {}
 
-def get_next_unprocessed(patients, last_processed):
-    if not last_processed:
-        return patients[0], 0  # Start from the beginning if no last processed
-    try:
-        last_patient_idx = patients.index(last_processed['patient_id'])
-        if last_patient_idx + 1 < len(patients):
-            return patients[last_patient_idx + 1], last_patient_idx + 1  # Next patient
-    except ValueError:
-        return patients[0], 0  # If last processed patient not found, start from beginning
-    return None, None  # If we've processed everything
+# def get_next_unprocessed(patients, last_processed):
+#     if not last_processed:
+#         return patients[0], 0  # Start from the beginning if no last processed
+#     try:
+#         last_patient_idx = patients.index(last_processed['patient_id'])
+#         if last_patient_idx + 1 < len(patients):
+#             return patients[last_patient_idx + 1], last_patient_idx + 1  # Next patient
+#     except ValueError:
+#         return patients[0], 0  # If last processed patient not found, start from beginning
+#     return None, None  # If we've processed everything
 
 # Set up logging
 logging.basicConfig(
-    filename='patient_processing_with_26_conn.log', 
+    filename='patient_processing_final_result_with_26_new_conn.log', 
     filemode='a', 
     format='%(asctime)s - %(levelname)s - %(message)s',
     level=logging.INFO
@@ -84,7 +84,7 @@ def plot_the_tumor_idx_on_suv_data(study_path, separate_seg_masks, SUV_data):
         read_and_show_study(study_path, idx=slice_idx, modality='pet_seg', out_path=f"{study_path}/pet_seg_slice{slice_idx}_tumor_idx{idx+1}_.png")
 
 def write_to_csv(data_directory, output_csv):
-    checkpoint = load_checkpoint()
+    # checkpoint = load_checkpoint()
     patients = sorted([pid for pid in os.listdir(data_directory) if not pid.startswith('.') and os.path.isdir(os.path.join(data_directory, pid))])
 
     with open(output_csv, 'a', newline='') as csvfile:
@@ -100,9 +100,9 @@ def write_to_csv(data_directory, output_csv):
             subfolders = sorted([f.name for f in os.scandir(patient_folder) if f.is_dir() and not f.name.startswith('.')])
             for study_id in subfolders:
                 unique_id = f"{patient_id}_{study_id}"
-                if checkpoint and (checkpoint.get('patient_id') == patient_id and checkpoint.get('study_id') >= study_id):
-                    logger.info(f"Skipping already processed combination {unique_id}")
-                    continue
+                # if checkpoint and (checkpoint.get('patient_id') == patient_id and checkpoint.get('study_id') >= study_id):
+                #     logger.info(f"Skipping already processed combination {unique_id}")
+                #     continue
                 
                 logger.info(f"-------------------------Processing patient {patient_id}-----------------------------")
                 subfolder_path = os.path.join(patient_folder, study_id)
@@ -127,26 +127,26 @@ def write_to_csv(data_directory, output_csv):
                             stats['SUV_max_values'][idx]
                         ])
                         csvwriter.writerow(row_data)
-                save_checkpoint({'patient_id': patient_id, 'study_id': study_id})
+                # save_checkpoint({'patient_id': patient_id, 'study_id': study_id})
                 logger.info(f'Finished writing study {study_id} for patient {patient_id} to csv')
                 
             
 
 def main(data_directory, output_csv):
 
-    if not os.path.exists(CHECKPOINT_FILE):
+    # if not os.path.exists(CHECKPOINT_FILE):
         # If there's no checkpoint file, write the header to a new CSV file
-        with open(output_csv, 'w', newline='') as csvfile:
-            csvwriter = csv.writer(csvfile)
-            header = ['Patient ID', 'Study ID', 'Tumor idx', 'Pixel Vol', 'Physical Vol(cm^3)', 'In Diameter(cm)', 'SUV Mean', 'SUV Min', 'SUV Max']
-            csvwriter.writerow(header)
+    with open(output_csv, 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        header = ['Patient ID', 'Study ID', 'Tumor idx', 'Pixel Vol', 'Physical Vol(cm^3)', 'In Diameter(cm)', 'SUV Mean', 'SUV Min', 'SUV Max']
+        csvwriter.writerow(header)
     write_to_csv(data_directory, output_csv)
 
 if __name__ == "__main__":
     # data_directory = "/Users/wenyuanchen/Desktop/IBM/IBM_Tumor_Project/Data"
     print('start!')
     data_directory = "/Volumes/T7 Shield/IBM/FDG-PET-CT-Lesions"
-    output_csv = 'all_patients_results_with_26.csv'
+    output_csv = 'all_patients_final_results_with_26_new_connected_components.csv'
     main(data_directory, output_csv)
     print('done!')
 

@@ -3,46 +3,76 @@ from scipy import ndimage
 import nibabel as nib
 import matplotlib.pyplot as plt
 import math
+import cc3d
 
-def get_connected_components_3D(seg_data, connectivity = 18):
-    # input seg_data is the numpy after reading nifti and get_fdata()
-    #value of 1 means lesion is present
-    value = 1
-    binary_mask = seg_data == value
-    print(f"binary_mask shape: {binary_mask.shape}")
+def get_connected_components_3D(seg_data, connectivity =26):
+    # print(seg_data.shape)
+    # 4 is a rough estimate of the minimum volume of a tumor in cubic mm
+    # minV= calculate_sphere_vol_from_diameter(4) #(removing noise in the segmentation data but not sure what the best number of pixel to deem too small is)
+    labels_out = cc3d.connected_components(seg_data, connectivity = connectivity)
 
-    #label and seperate each component off that has the value of 1
-    if connectivity == 18:
-        connectivity_criteria = np.array([[[0, 1, 0], [1, 1, 1], [0, 1, 0]],
-                         [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-                         [[0, 1, 0], [1, 1, 1], [0, 1, 0]]])
-    else:
-        connectivity_criteria = np.ones((3, 3, 3), dtype=int)
-
-    labled_mask, num_features = ndimage.label(binary_mask, structure=connectivity_criteria)
-
-    #assign a unique id to each component
-    unique_ids = np.unique(labled_mask)[1:]
-    # unique_ids = np.unique(labled_mask)
-    # TO-DO: can we slice the unique_ids to exclude the first one, which is 0 corresponding to the background?
-    # print(unique_ids)
-
-    #num of components
-    print(num_features)
-
-    #seperate out the masks
+    # print(f"labels_out shape: {labels_out.shape}")
+    cc_n = np.max(np.unique(labels_out))
     separate_seg_masks = []
-    for component_id in unique_ids:
-        component_mask = labled_mask == component_id
-        #print each id of each component
-        print(f"Connected Component {component_id}:")
-        # if np.sum(component_mask) >= 10:
-        separate_seg_masks.append(component_mask)
+    for i in range(1,cc_n+1):
+        # print(f"tumor index: {i}")
+        # size_n=np.sum(labels_out==i)
+        # if size_n<minV:
+        #     seg_data[labels_out==i]=0
+        # else:
+        c_mask = labels_out == i
+        separate_seg_masks.append(c_mask)
     return separate_seg_masks
+
+# def calculate_sphere_vol_from_diameter(diameter):
+#     radius = diameter/2
+#     return (4/3)*np.pi*(radius**3)
+
+# def get_connected_components_3D(seg_data, connectivity = 26):
+#     # input seg_data is the numpy after reading nifti and get_fdata()
+#     #value of 1 means lesion is present
+#     value = 1
+#     binary_mask = seg_data == value
+#     print(f"binary_mask shape: {binary_mask.shape}")
+
+#     #label and seperate each component off that has the value of 1
+#     if connectivity == 18:
+#         connectivity_criteria = np.array([[[0, 1, 0], [1, 1, 1], [0, 1, 0]],
+#                          [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+#                          [[0, 1, 0], [1, 1, 1], [0, 1, 0]]])
+#     else:
+#         connectivity_criteria = np.ones((3, 3, 3), dtype=int)
+
+#     labled_mask, num_features = ndimage.label(binary_mask, structure=connectivity_criteria)
+
+#     #assign a unique id to each component
+#     unique_ids = np.unique(labled_mask)[1:]
+#     # unique_ids = np.unique(labled_mask)
+#     # TO-DO: can we slice the unique_ids to exclude the first one, which is 0 corresponding to the background?
+#     # print(unique_ids)
+
+#     #num of components
+#     print(num_features)
+
+#     #seperate out the masks
+#     separate_seg_masks = []
+#     for component_id in unique_ids:
+#         component_mask = labled_mask == component_id
+#         #print each id of each component
+#         print(f"Connected Component {component_id}:")
+#         if np.sum(component_mask) >= calculate_sphere_vol_from_diameter(4):
+#             print(calculate_sphere_vol_from_diameter(4))
+#             separate_seg_masks.append(component_mask)
+#     return separate_seg_masks
+
+def get_diameter_from_sphere_volume(volume):
+    return 2 * (3 * volume / (4 * np.pi)) ** (1/3) 
+
 
 def calculate_tumor_volumes(separate_seg_masks, voxel_dimensions):
     tumor_volumes = []
     tumor_voxel_counts = []
+    tumor_in_diameter = []
     for mask in separate_seg_masks:
         #count the number of voxels in the mask
         num_voxels = np.sum(mask)
@@ -51,7 +81,7 @@ def calculate_tumor_volumes(separate_seg_masks, voxel_dimensions):
         tumor_volume = num_voxels * np.prod(voxel_dimensions)/1000
         # print(f"Tumor volume: {tumor_volume} cubic mm")
         tumor_volumes.append(np.round(tumor_volume,4))
-    tumor_in_diameter = np.round(np.cbrt(tumor_volumes),4)
+        tumor_in_diameter.append(np.round(get_diameter_from_sphere_volume(tumor_volume),4))
     return tumor_voxel_counts, tumor_volumes, tumor_in_diameter
 
 def calculate_SUV_value(separate_seg_masks, SUV_data):
