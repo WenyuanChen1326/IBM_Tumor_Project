@@ -7,3 +7,6 @@ colored_tumor_seg/
 *.csv
 *.npy
 *.xls
+*.json
+*.pkl
+*.zip

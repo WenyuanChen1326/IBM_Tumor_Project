@@ -108,25 +108,27 @@ def axial_PET_slice(img, suv_max, suv_min=0):
 # ct level and window can be read from the gaze jsons for each data point --?? need to check if saved properly
 # default shows soft tissue window
 def axial_CT_slice(img, ct_level=50, ct_window=400):
-    img, img_min, img_max = window_ct_image(image, window_center, window_width)
+    # img, img_min, img_max = window_ct_image(image, window_center, window_width)
+    cmap_ct = plt.cm.gist_gray
+    img, img_min, img_max = window_ct_image(img, ct_level, ct_window)
     norm_ct = plt.Normalize(vmin=img_min, vmax=img_max)
-    img = cmap(norm_ct(img))
+    img = cmap_ct(norm_ct(img))
     return img
         
         
 # prep 1 axial PET/CT fused image slice
 def axial_PETCT_slice(pt, ct, alpha = 0.3):
-    # PET image prep
-    # closest heatmap to "hot iron" colormap that gets used in PACS for PET
-    cmap_pt = plt.cm.gist_heat 
-    pt = cmap_pt(norm(pt))
+    # # PET image prep
+    # # closest heatmap to "hot iron" colormap that gets used in PACS for PET
+    # cmap_pt = plt.cm.gist_heat 
+    # pt = cmap_pt(norm(pt))
     pt = convert_bgra2rgba(pt) 
 
-    # CT image prep
-    cmap_ct = plt.cm.gist_gray
-    img, img_min, img_max = window_ct_image(image, window_center, window_width)
-    norm_ct = plt.Normalize(vmin=img_min, vmax=img_max)
-    ct = cmap_ct(norm_ct(ct)) 
+    # # CT image prep
+    # cmap_ct = plt.cm.gist_gray
+    # img, img_min, img_max = window_ct_image(image, window_center, window_width)
+    # norm_ct = plt.Normalize(vmin=img_min, vmax=img_max)
+    # ct = cmap_ct(norm_ct(ct)) 
 
     # fused, somehow minus instead of + worked better
     img = cv2.addWeighted(ct, 1-alpha, pt, alpha, 0)
@@ -137,6 +139,7 @@ def axial_PETCT_slice(pt, ct, alpha = 0.3):
 def show_axial_image_slice(img, dim=(400,400), display=True, show_gaze=False):
 #     if show_gaze and not paused:
 #             img = add_gaze(img)  
+    print(f'img shape before resize: {img.shape}')
     img = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
     cv2.namedWindow("slice", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("slice", dim[0],dim[1])
@@ -152,8 +155,8 @@ def show_axial_image_slice(img, dim=(400,400), display=True, show_gaze=False):
 # study_path assumes a nested directory from Tubingen dataset with processed nifties as named below
 def read_and_show_study(study_path, idx, modality, dim=(400,400), out_path=None):
     # .nii.gz files expected in the study_path
-    seg_path = os.path.join(study_path,'tumor_3_seg.nii.gz')
-    # seg_path = os.path.join(study_path,'SEG.nii.gz')
+    # seg_path = os.path.join(study_path,'tumor_3_seg.nii.gz')
+    seg_path = os.path.join(study_path,'SEG.nii.gz')
 
     pt_path = os.path.join(study_path,'SUV.nii.gz')
     ct_path = os.path.join(study_path,'CTres.nii.gz')
@@ -193,7 +196,7 @@ def read_and_show_study(study_path, idx, modality, dim=(400,400), out_path=None)
     
     # Show final processed image axial slice
     print('Showing an axial slice of modality: ', modality, ' and slice index: ', idx)
-    # show_axial_image_slice(img, dim=(400,400))
+    show_axial_image_slice(img, dim=(400,400))
     
     # Save image. Out_path should have a .png or .jpg extension
     if out_path!=None:
@@ -231,8 +234,8 @@ def read_and_show_study(study_path, idx, modality, dim=(400,400), out_path=None)
 
 
 if __name__ == "__main__":
-    # study_path = '/Users/wenyuanchen/Desktop/IBM/IBM_Tumor_Project/Data/PETCT_0b57b247b6/05-02-2002-NA-PET-CT Ganzkoerper  primaer mit KM-42966'
-    study_path = '/Volumes/T7 Shield/IBM/FDG-PET-CT-Lesions-2/PETCT_0e2034240b/01-31-2003-NA-PET-CT Ganzkoerper  primaer mit KM-08517'
+    study_path = '/Users/wenyuanchen/Desktop/IBM/IBM_Tumor_Project/Data/PETCT_0b57b247b6/05-02-2002-NA-PET-CT Ganzkoerper  primaer mit KM-42966'
+    # study_path = '/Volumes/T7 Shield/IBM/FDG-PET-CT-Lesions-2/PETCT_0e2034240b/01-31-2003-NA-PET-CT Ganzkoerper  primaer mit KM-08517'
 # Default index
     idx = 170
     # Check if an index argument was provided
@@ -243,7 +246,7 @@ if __name__ == "__main__":
         except ValueError:
             print("Invalid index provided. Using default index 0.")
     
-    read_and_show_study(study_path, idx=idx, modality='pet_seg', out_path=f"{study_path}/pet_seg_slice{idx}.png")
+    read_and_show_study(study_path, idx=idx, modality='ct', out_path=f"{study_path}/pet_seg_slice{idx}.png")
 
     # seg_data = nib.load(f"{study_path}/SEG.nii.gz").get_fdata()
     # separate_seg_masks = get_connected_components_3D(seg_data)
