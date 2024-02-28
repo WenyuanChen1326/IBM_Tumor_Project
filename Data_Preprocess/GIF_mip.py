@@ -30,7 +30,7 @@ import pandas as pd
 import display_removed_tumors as drt
 import matplotlib.colors as mcolors
 import pickle
-import find_tumor_candidate
+import Data_Preprocess.find_tumor_candidate_to_csv as find_tumor_candidate_to_csv
 
 
 #### Create MIP GIF

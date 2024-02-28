@@ -70,7 +70,6 @@ def select_ct_window(key=None):
         W = 400
     return L, W
 
-
 # basically switch channel 1 and 3 and allows adjusting alpha for transparency
 def convert_bgra2rgba(img_bgra,alpha=1):
     b = img_bgra[:,:,0].copy()
