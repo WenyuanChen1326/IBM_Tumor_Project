@@ -201,11 +201,13 @@ def scale_up_block(input_block, new_resol = [224,224,224],interpolation = 'cubic
     # print(resampled_array.shape)
 
     # Transpose the array to match the conventional (height, width, channels) format
-    # resampled_array_np = np.transpose(resampled_array, (1, 2, 0))
+    resampled_array_np = np.transpose(resampled_array, (1, 2, 0))
     # print(resampled_array_np.shape)
 
     # Return the resampled array
-    return resampled_array
+    # return resampled_array
+    return resampled_array_np
+
     
 
 
