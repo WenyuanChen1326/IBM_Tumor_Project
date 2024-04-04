@@ -1,0 +1,7 @@
+Block Size 3x3x3:
+Positive Blocks: 49547
+Negative Blocks: 6646564
+
+Block Size 16x16x16:
+Positive Blocks: 187809
+Negative Blocks: 6508302

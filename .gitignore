@@ -1,4 +1,7 @@
 Data/
+Processed_Block/
+Processed_Block_block_size3/
+Processed_Block_block_size16/
 __pycache__/
 .DS_Store
 patient_processing.log
@@ -10,3 +13,4 @@ colored_tumor_seg/
 *.json
 *.pkl
 *.zip
+

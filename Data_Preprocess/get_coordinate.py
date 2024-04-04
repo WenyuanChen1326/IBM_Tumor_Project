@@ -20,6 +20,7 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger()
+
 def create_negative_blocks(seg_data, local_max,sample_size, block_size):
     negative_coordinates = sample_neg_block(seg_data,local_max,block_size, sample_size)
     return negative_coordinates
@@ -51,8 +52,8 @@ def process_patient_folder(subfolder_path, sample_size = 100, block_size = (3, 3
     filtered_separate_segmentation_masks = filter_separate_segmentation_mask_by_diameter_and_SUV_max_and_voxel_of_interest(
         suv_data, voxel_dimensions, separate_segmentation_masks, 
         diameter_in_cm = 0.6, SUV_max = 3, voxel_of_interst = 3)
-    R=3
-    TH=2.0
+    R=3 # change it to 1 ?
+    TH=2.0 # change it to smaller ones
     local_max=peak_local_max(suv_data,min_distance=R,threshold_abs=TH)
     positive_coordinates = create_positive_blocks(filtered_separate_segmentation_masks)
     negative_coordinates = create_negative_blocks(seg_data,local_max,sample_size, block_size)
@@ -61,6 +62,14 @@ def process_patient_folder(subfolder_path, sample_size = 100, block_size = (3, 3
     # The returned coordinates are in the form of (x_indices, y_indices, z_indices)
     # To get a list of (x, y, z) tuples:
     pos_xyz_coordinates = np.array(list(zip(coordinates[0], coordinates[1], coordinates[2])))
+    # use the same sampling method to get the pos and neg. 
+    # potnetial risk: miss the candidate 
+    # the goal is to include the all positive tumors. 
+    # use all the points in the local_max for neg and pos. play with the parameters to reach balance between neg and pos. 
+    # risk is that neg is overbalanced but it's okay. 
+    # use non-max suppression after the peak_local_max. only helps if it misses too many pos candates. 
+    # hongzhi uses 64 by 64 by 64.(3mm by 3mm by 3mm) 
+    # 
 
     non_restricted_positive_coordinates = create_non_restricted_pos_block(seg_data,pos_xyz_coordinates,sample_size, block_size)
     return {
@@ -75,7 +84,7 @@ def get_coorindates(data_directory, modality = 'pet', block_size = (3, 3, 3)):
     assert modality in ['pet', 'ct'], "modality must be either 'pet', 'ct'"
     patients = sorted([pid for pid in os.listdir(data_directory) if not pid.startswith('.') and os.path.isdir(os.path.join(data_directory, pid))])
     raw_input_data = []  # List to collect data for raw_input_df
-    # raw_input_label = []
+    raw_input_label = []
   
     for patient_id in tqdm(patients, desc="Processing patients"):
             if patient_id == 'PETCT_1285b86bea':
@@ -121,7 +130,7 @@ def get_coorindates(data_directory, modality = 'pet', block_size = (3, 3, 3)):
                                        slice(coordinate[1], coordinate[1] + block_size[1]),
                                        slice(coordinate[2], coordinate[2] + block_size[2])])
                         raw_input_data.append(suv_block)
-                        # raw_input_label.append(1)
+                        raw_input_label.append(1)
     
                         # coordinate_str = f"({coordinate[0]},{coordinate[1]},{coordinate[2]})"
                         # block_size_str = f"({block_size[0]},{block_size[1]},{block_size[2]})"
@@ -134,7 +143,7 @@ def get_coorindates(data_directory, modality = 'pet', block_size = (3, 3, 3)):
                                        slice(coordinate[1], coordinate[1] + block_size[1]),
                                        slice(coordinate[2], coordinate[2] + block_size[2])])
                     raw_input_data.append(suv_block)
-                    # raw_input_label.append(0)
+                    raw_input_label.append(0)
                 logger.info(f'Finished getting coord for study {study_id} for patient {patient_id} to npy file')
             # break
 
@@ -153,7 +162,7 @@ def get_coorindates(data_directory, modality = 'pet', block_size = (3, 3, 3)):
         np.save(f'400_by_400_ct_dataset.npy', raw_output_data)
     else:
         np.save(f'ori_reso_all_dataset_some_modality.npy', raw_output_data)
-    # np.save(f'ori_reso_all_labels.npy', raw_input_label)     
+    np.save(f'ori_reso_all_labels.npy', raw_input_label)     
     print(f'data saved')      
 
 def main(data_directory, modality, block_size = (3, 3, 3)):

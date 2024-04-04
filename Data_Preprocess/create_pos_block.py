@@ -25,7 +25,6 @@ def filter_separate_segmentation_mask_by_diameter_and_SUV_max_and_voxel_of_inter
 
     return filtered_separate_segmentation_masks
 
-
 def get_max_min_xyz_of_mask(binary_mask):
     
     # Find the non-zero indicesxs
